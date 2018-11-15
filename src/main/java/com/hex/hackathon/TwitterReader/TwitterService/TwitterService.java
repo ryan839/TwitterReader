@@ -65,7 +65,8 @@ public class TwitterService {
                 result = twitter.search(query);
                 List<Status> pulledTweets = result.getTweets();
                 for (Status tweet : pulledTweets) {
-                	tweets.add(new Tweet(tweet.getUser().getScreenName(),tweet.getText()));
+                	tweets.add(new Tweet(tweet.getUser().getScreenName(),
+                			tweet.getText().replaceAll("[\\S]+://[\\S]+", "").replaceAll("[^A-Za-z0-9 ]", " ").replaceAll("( )+", " ")));
                 }
             } while ((query = result.nextQuery()) != null);
 			
@@ -78,6 +79,40 @@ public class TwitterService {
 		
 		return tweets;
 	}
+	
+	
+	public Tweet getAllTweets(String username)
+	{
+		String tweetMessage=new String();
+		Tweet tweets=new Tweet();
+		try
+		{
+			Query query = new Query("from:"+username);
+			QueryResult result;
+			do {
+                result = twitter.search(query);
+                List<Status> pulledTweets = result.getTweets();
+                for (Status tweet : pulledTweets) {
+                	tweetMessage=tweetMessage+" "+tweet.getText().replaceAll("[\\S]+://[\\S]+", "");
+                	
+                }
+            } while ((query = result.nextQuery()) != null);
+			
+		 tweetMessage=tweetMessage.replaceAll("[^A-Za-z0-9 ]", " ");
+		 tweetMessage=tweetMessage.replaceAll("( )+", " ");
+			tweets.setUserName(username);
+			tweets.setMessage(tweetMessage);
+			
+		}
+		catch (TwitterException te) {
+            te.printStackTrace();
+            System.out.println("Failed to get timeline: " + te.getMessage());
+            System.exit(-1);
+        } 
+		
+		return tweets;
+	}
+	
 	
 	
 }
