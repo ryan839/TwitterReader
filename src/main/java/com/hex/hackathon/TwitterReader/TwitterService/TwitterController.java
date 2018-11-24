@@ -42,4 +42,11 @@ public class TwitterController {
 		List<Tweet> tweetList=twitterService.getFinTweets(name);
 		return tweetList;
 	}
+	
+	@GetMapping("/getAllFinTweets/{name}")
+	public Tweet retrieveAllFinTweets(@PathVariable String name)
+	{
+		Tweet tweet=twitterService.getAllFinTweets(name);
+		return tweet;
+	}
 }

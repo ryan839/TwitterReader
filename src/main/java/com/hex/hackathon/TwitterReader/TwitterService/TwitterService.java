@@ -92,7 +92,7 @@ public class TwitterService {
 		catch (TwitterException te) {
             te.printStackTrace();
             System.out.println("Failed to get timeline: " + te.getMessage());
-            tweets=generateTweets();
+     //       tweets=generateTweets();
         } 
 		List<Tweet> mergedTweets=mergeTweets(tweets);
 		
@@ -108,14 +108,14 @@ public class TwitterService {
 		{
 			Query query = new Query("from:"+username);
 			QueryResult result;
-			do {
+			query.setCount(15);
                 result = twitter.search(query);
                 List<Status> pulledTweets = result.getTweets();
                 for (Status tweet : pulledTweets) {
                 	tweetMessage=tweetMessage+" "+tweet.getText().replaceAll("[\\S]+://[\\S]+", "");
                 	
                 }
-            } while ((query = result.nextQuery()) != null);
+          
 			
 		 tweetMessage=tweetMessage.replaceAll("[^A-Za-z0-9 ]", " ");
 		 tweetMessage=tweetMessage.replaceAll("( )+", " ");
@@ -156,7 +156,7 @@ public class TwitterService {
 		catch (TwitterException te) {
             te.printStackTrace();
             System.out.println("Failed to get timeline: " + te.getMessage());
-            tweets=generateTweets();
+         //   tweets=generateTweets();
         } 
 		
 		List<Tweet> mergedTweets=mergeTweets(tweets);
@@ -184,13 +184,24 @@ public class TwitterService {
 		return tweetsCopy;
 	}
 	
-	private List<Tweet> generateTweets()
+	
+	public Tweet getAllFinTweets(String username)
 	{
-		List<Tweet> tweets = new ArrayList<Tweet>();
-		tweets.add(new Tweet("cnbc","WATCH: The Dow slides, down more than 500 points. Stocks have erased gains for 2018.#Rupee rallies to its highest level in nearly 3 months as it moves closer to the 70-mark against the Dollar. 10-year bonds hit their highest level in 6 months as #Brent crude prices crash 30% from October highs"));
-		tweets.add(new Tweet("cnbc","#Rupee rallies to its highest level in nearly 3 months as it moves closer to the 70-mark against the Dollar. 10-year bonds hit their highest level in 6 months as #Brent crude prices crash 30% from October highs."));
-		tweets.add(new Tweet("cnbc","....and Safety at the Border, or anywhere else. They know nothing about it and are making our Country unsafe. Our great Law Enforcement professionals MUST BE ALLOWED TO DO THEIR JOB! If not there will be only bedlam, chaos, injury and death. We want the Constitution as written!"));
-		return tweets;
+		List<Tweet> allFinTweetList= getFinTweets(username);
+		Tweet allFinTweets=new Tweet();
+		String tweetMessage=new String();
+		
+		for(Tweet t: allFinTweetList)
+		{
+			tweetMessage=tweetMessage+" "+t.getMessage();
+		}
+		
+		tweetMessage=tweetMessage.replaceAll("[^A-Za-z0-9 ]", " ");
+		 tweetMessage=tweetMessage.replaceAll("( )+", " ");
+		 allFinTweets.setUserName(username);
+		 allFinTweets.setMessage(tweetMessage);
+		
+		return allFinTweets;
 	}
 
 	//Function that will be user to make a call to the Google NL service to determine if the message is financial related/
