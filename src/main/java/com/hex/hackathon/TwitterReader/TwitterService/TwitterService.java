@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hex.hackathon.TwitterReader.Beans.CategoriesBean;
 import com.hex.hackathon.TwitterReader.Beans.CategoryBean;
+import com.hex.hackathon.TwitterReader.Beans.FinPercentBean;
 
 import twitter4j.conf.ConfigurationBuilder;
 import twitter4j.Query;
@@ -77,7 +78,7 @@ public class TwitterService {
 		{
 			Query query = new Query("from:"+username);
 			QueryResult result;
-			query.setCount(15);
+			query.setCount(30);
 		//	for (int i=0;i<5;i++)
 		//	{
                 result = twitter.search(query);
@@ -108,7 +109,7 @@ public class TwitterService {
 		{
 			Query query = new Query("from:"+username);
 			QueryResult result;
-			query.setCount(15);
+			query.setCount(30);
                 result = twitter.search(query);
                 List<Status> pulledTweets = result.getTweets();
                 for (Status tweet : pulledTweets) {
@@ -140,7 +141,7 @@ public class TwitterService {
 		{
 			Query query = new Query("from:"+username);
 			QueryResult result;
-			query.setCount(15);
+			query.setCount(30);
 			//for (int i=0;i<5;i++)
 			//{
                 result = twitter.search(query);
@@ -328,6 +329,65 @@ public static List<Tweet> mergeTweets(List<Tweet> t)
 	
 }
 
+
+
+public FinPercentBean getFinPercent(String username)
+{
+	FinPercentBean finPercent=new FinPercentBean();
+	
+	List<Tweet> tweets=new ArrayList<>();
+	try
+	{
+		Query query = new Query("from:"+username);
+		QueryResult result;
+		query.setCount(30);
+		//for (int i=0;i<5;i++)
+		//{
+            result = twitter.search(query);
+            List<Status> pulledTweets = result.getTweets();
+            for (Status tweet : pulledTweets) {
+            	System.out.println(tweet.getText());
+            tweets.add(new Tweet(tweet.getUser().getScreenName(),
+            			tweet.getText().replaceAll("[\\S]+://[\\S]+", "").replaceAll("[^A-Za-z0-9 ]", " ").replaceAll("( )+", " ")));
+        //    }
+        }
 		
+	}
+	catch (TwitterException te) {
+        te.printStackTrace();
+        System.out.println("Failed to get timeline: " + te.getMessage());
+     //   tweets=generateTweets();
+    } 
+	
+	List<Tweet> mergedTweets=mergeTweets(tweets);
+      List<Tweet> tweetsCopy=new ArrayList<Tweet>(mergedTweets);
+        
+	for(Tweet t:mergedTweets)
+	{
+		if (numberOfWords(t.getMessage()) >20) //for now disqualify any with less than 20 chars.
+										//option:implemented mergeTweet :)
+		{
+		if (!isFinancial(t))
+		{
+			System.out.println("Not Fin");
+			tweetsCopy.remove(t);
+		}
+		}
+		else
+		{
+			System.out.println("Too Short");
+			tweetsCopy.remove(t);
+		}
+	}
+	
+	finPercent.setMergedTweetCounts(mergedTweets.size());
+	finPercent.setMergedFinTweetCounts(tweetsCopy.size());
+	finPercent.calcPercent();
+	
+	return finPercent;
+	
+	
+	
+}		
 		
 }
