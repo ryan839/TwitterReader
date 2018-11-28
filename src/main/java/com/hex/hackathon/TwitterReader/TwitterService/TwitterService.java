@@ -20,6 +20,9 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hex.hackathon.TwitterReader.Beans.CategoriesBean;
 import com.hex.hackathon.TwitterReader.Beans.CategoryBean;
+import com.hex.hackathon.TwitterReader.Beans.EntitiesBean;
+import com.hex.hackathon.TwitterReader.Beans.EntityBean;
+import com.hex.hackathon.TwitterReader.Beans.EntityReturnBean;
 import com.hex.hackathon.TwitterReader.Beans.FinPercentBean;
 
 import twitter4j.conf.ConfigurationBuilder;
@@ -243,7 +246,7 @@ public class TwitterService {
 				for(CategoryBean category: categories.getCategories())
 				{
 					System.out.println(category.getName().toLowerCase());
-					if(category.getName().toLowerCase().contains("finance"))
+					if(category.getName().toLowerCase().contains("finance") || category.getName().toLowerCase().contains("business")  )
 					{
 						return true;
 					}
@@ -385,9 +388,77 @@ public FinPercentBean getFinPercent(String username)
 	finPercent.calcPercent();
 	
 	return finPercent;
-	
-	
-	
+
 }		
+
+public List<EntityReturnBean> getAllEntities (String username)
+{
+	List<EntityReturnBean> retEntities=new ArrayList<EntityReturnBean>();
+	
+	try
+	{System.out.println(twitter.verifyCredentials().getName());}
+	catch (Exception e)
+	{
+	System.out.println(e);
+	}
+	
+	Tweet tweet=this.getAllFinTweets(username);
+	
+	String url="https://language.googleapis.com/v1/documents:analyzeEntitySentiment?fields=entities&key=AIzaSyBVIlYJgfTnYcBKzCMTjQdH_DO23o9U3ik";
+	
+	try {
+		HashMap<String, String> requestBody = new HashMap<String, String>();
+		requestBody.put("type", "PLAIN_TEXT");
+		requestBody.put("content", tweet.getMessage());
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_JSON);
+
 		
+		// Jackson ObjectMapper to convert requestBody to JSON
+		String json = new ObjectMapper().writeValueAsString(requestBody);
+		json="{\"document\": "+json+"}";
+		System.out.println(json);
+		HttpEntity<String> httpEntity = new HttpEntity<>(json, headers);
+		System.out.println(json);
+		RestTemplate rt=new RestTemplate();
+
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
+		MappingJackson2HttpMessageConverter messageConverter = new MappingJackson2HttpMessageConverter();
+		messageConverter.setPrettyPrint(false);
+		messageConverter.setObjectMapper(mapper);
+		
+		rt.getMessageConverters().removeIf(m -> m.getClass().getName().equals(MappingJackson2HttpMessageConverter.class.getName()));
+		rt.getMessageConverters().add(messageConverter);
+		
+		ResponseEntity<EntitiesBean> responseEntity=rt.exchange(url, HttpMethod.POST,	httpEntity, EntitiesBean.class);
+		 		
+		EntitiesBean entities =responseEntity.getBody();
+		
+		for(EntityBean entity: entities.getEntities())
+		{
+			retEntities.add(new EntityReturnBean(entity.getName(),entity.getSalience()));
+		}
+		
+		
+		
+	} catch (RestClientException e) {
+		// TODO Auto-generated catch block
+		System.out.println("Failed check Fin: " + e.getMessage());
+		System.out.println("Failed check Fin: " + e.toString());
+		e.printStackTrace(); 
+		System.exit(-1);
+	} catch (JsonProcessingException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace(); 
+		System.exit(-1);
+	}
+	
+	
+	return retEntities;
+	
+}
+
+
 }

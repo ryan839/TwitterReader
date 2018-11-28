@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.hex.hackathon.TwitterReader.Beans.EntityReturnBean;
 import com.hex.hackathon.TwitterReader.Beans.FinPercentBean;
 
 @RestController
@@ -58,6 +59,13 @@ public class TwitterController {
 	{
 		FinPercentBean finP=twitterService.getFinPercent(name);
 		return finP;
+	}
+	
+	@GetMapping("/getEntities/{name}")
+	public List<EntityReturnBean> retrieveAllEntities(@PathVariable String name)
+	{
+		List<EntityReturnBean> entities= twitterService.getAllEntities (name);
+		return entities;
 	}
 	
 }
