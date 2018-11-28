@@ -12,7 +12,6 @@ public class EntityBean implements Serializable {
 	String type;
 	HashMap<String, String> metadata = new HashMap<String, String>();
 	Number salience;
-	//MentionsBean mentions=new MentionsBean();
 	ArrayList<MentionBean> mentions = new ArrayList<MentionBean>();
 	SentimentBean sentiment= new SentimentBean();
 	public String getName() {
@@ -51,27 +50,7 @@ public class EntityBean implements Serializable {
 	public EntityBean() {
 		super();
 	}
-/*	public MentionsBean getMentions() {
-		return mentions;
-	}
-	public void setMentions(MentionsBean mentions) {
-		this.mentions = mentions;
-	}
-	@Override
-	public String toString() {
-		return "EntityBean [name=" + name + ", type=" + type + ", metadata=" + metadata + ", salience=" + salience
-				+ ", mentions=" + mentions + ", sentiment=" + sentiment + "]";
-	}
-	public EntityBean(String name, String type, HashMap<String, String> metadata, Number salience,
-			MentionsBean mentions, SentimentBean sentiment) {
-		super();
-		this.name = name;
-		this.type = type;
-		this.metadata = metadata;
-		this.salience = salience;
-		this.mentions = mentions;
-		this.sentiment = sentiment;
-	}*/
+
 	public ArrayList<MentionBean> getMentions() {
 		return mentions;
 	}
