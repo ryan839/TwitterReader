@@ -1,10 +1,13 @@
 package com.hex.hackathon.TwitterReader.TwitterService;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
 
+import org.python.core.PyObject;
+import org.python.util.PythonInterpreter;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -24,6 +27,7 @@ import com.hex.hackathon.TwitterReader.Beans.EntitiesBean;
 import com.hex.hackathon.TwitterReader.Beans.EntityBean;
 import com.hex.hackathon.TwitterReader.Beans.EntityReturnBean;
 import com.hex.hackathon.TwitterReader.Beans.FinPercentBean;
+import com.hex.hackathon.TwitterReader.Beans.SentimentAylienBean;
 
 import twitter4j.conf.ConfigurationBuilder;
 import twitter4j.Query;
@@ -33,6 +37,10 @@ import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
 
+import com.aylien.textapi.TextAPIClient;
+import com.aylien.textapi.TextAPIException;
+import com.aylien.textapi.parameters.*;
+import com.aylien.textapi.responses.*;
 
 @Component
 public class TwitterService {
@@ -80,6 +88,7 @@ public class TwitterService {
 		try
 		{
 			Query query = new Query("from:"+username);
+			//Query query = new Query(username);
 			QueryResult result;
 			query.setCount(30);
 		//	for (int i=0;i<5;i++)
@@ -111,6 +120,7 @@ public class TwitterService {
 		try
 		{
 			Query query = new Query("from:"+username);
+			//Query query = new Query(username+"-rt");
 			QueryResult result;
 			query.setCount(30);
                 result = twitter.search(query);
@@ -301,7 +311,7 @@ public static List<Tweet> mergeTweets(List<Tweet> t)
 		
 		if(user.equals(tempTweet.getUserName()))
 		{
-        if(numberOfWords(message)>=20)
+        if(numberOfWords(message)>=25)
 		{
 			tempTweets.add(new Tweet(tempTweet.getUserName(),message));
 			message="";
@@ -311,7 +321,7 @@ public static List<Tweet> mergeTweets(List<Tweet> t)
 		}
 	else
 	{
-		if(numberOfWords(message)>=20)
+		if(numberOfWords(message)>=25)
 		{
 			tempTweets.add(new Tweet(tempTweet.getUserName(),message));
 			message="";
@@ -367,7 +377,7 @@ public FinPercentBean getFinPercent(String username)
         
 	for(Tweet t:mergedTweets)
 	{
-		if (numberOfWords(t.getMessage()) >20) //for now disqualify any with less than 20 chars.
+		if (numberOfWords(t.getMessage()) >25) //for now disqualify any with less than 20 chars.
 										//option:implemented mergeTweet :)
 		{
 		if (!isFinancial(t))
@@ -459,6 +469,83 @@ public List<EntityReturnBean> getAllEntities (String username)
 	return retEntities;
 	
 }
+
+public List<SentimentAylienBean> getProductSentiment(String name)
+{
+String subject=name;
+	List<Tweet> tweets=new ArrayList<>();
+	try
+	{
+		Query query = new Query(subject);
+		QueryResult result;
+		query.setCount(30);
+	//	for (int i=0;i<5;i++)
+	//	{
+            result = twitter.search(query);
+            List<Status> pulledTweets = result.getTweets();
+            for (Status tweet : pulledTweets) {
+            tweets.add(new Tweet(tweet.getUser().getScreenName(),
+            			tweet.getText().replaceAll("[\\S]+://[\\S]+", "").replaceAll("[^A-Za-z0-9 ]", " ").replaceAll("( )+", " ")));
+            }
+  //      }
+		
+	}
+	catch (TwitterException te) {
+        te.printStackTrace();
+        System.out.println("Failed to get pull Sub Tweets: " + te.getMessage());
+ //       tweets=generateTweets();
+    } 
+	
+		List<Sentiment> sentiments=new ArrayList<Sentiment>();
+		List<SentimentAylienBean> retSentiments=new ArrayList<SentimentAylienBean>();
+		
+		TextAPIClient client = new TextAPIClient("e2c925a1", "da7e7516a7d5248f03742e5b8232a272");
+	    SentimentParams.Builder builder = SentimentParams.newBuilder();
+	    
+	    //Sentiment sentiment=new Sentiment();
+		try {
+			
+			for(Tweet t: tweets)
+			{
+			builder.setText(t.getMessage());
+			sentiments.add(client.sentiment(builder.build()));
+			}
+		} catch (TextAPIException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	    
+		for(Sentiment s: sentiments)
+		{
+			Integer pos=-1;
+						
+			for(SentimentAylienBean r: retSentiments)
+			{
+				if(r.getPolarity().equals(s.getPolarity()))
+				{
+					pos=retSentiments.indexOf(r);
+				}
+					
+			}
+			
+			if(pos==-1)
+			{
+				retSentiments.add(new SentimentAylienBean(s.getPolarity(),1));
+			}
+			else
+			{
+				SentimentAylienBean tmp=retSentiments.get(pos);
+				Integer a=tmp.getCount();
+				tmp.setCount(a+1);
+				retSentiments.set(pos, tmp);
+			}
+				
+		}
+		
+		return retSentiments;
+	  
+}
+
 
 
 }

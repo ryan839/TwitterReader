@@ -48,6 +48,19 @@
 		    <version>4.0.7</version>
 		</dependency>
 		
+		<dependency>
+    		<groupId>org.python</groupId>
+    		<artifactId>jython-standalone</artifactId>
+    		<version>2.5.4-rc1</version>
+    	</dependency>
+   
+    <dependency>
+			<groupId>com.aylien.textapi</groupId>
+			<artifactId>client</artifactId>
+			<version>0.6.0</version>
+		</dependency>
+    
+		
 	</dependencies>
 
 	<build>

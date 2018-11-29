@@ -7,8 +7,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.aylien.textapi.responses.Sentiment;
 import com.hex.hackathon.TwitterReader.Beans.EntityReturnBean;
 import com.hex.hackathon.TwitterReader.Beans.FinPercentBean;
+import com.hex.hackathon.TwitterReader.Beans.SentimentAylienBean;
+
 
 @RestController
 public class TwitterController {
@@ -68,4 +71,12 @@ public class TwitterController {
 		return entities;
 	}
 	
+	
+	@GetMapping("/getProductSentiment/{name}")
+	public List<SentimentAylienBean> retriveProductSentiment(@PathVariable String name)
+	{
+		List<SentimentAylienBean> sentiment=twitterService.getProductSentiment(name);
+		return sentiment;
+	}
+
 }
